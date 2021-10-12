@@ -1,0 +1,63 @@
+! pip install basedosdados geopandas
+import pandas as pd
+import basedosdados as bd
+import geopandas as gp
+import matplotlib.pyplot as plt
+
+# Carregar ID municípios
+mun = bd.read_table(dataset_id='br_bd_diretorios_brasil',
+                    table_id='municipio',
+                    billing_project_id="<YOUR_PROJECT_ID>")
+
+# Excluir colunas que não serão usadas
+munic = mun.drop(['id_municipio_tse', 'id_municipio_rf', 'id_municipio_bcb', 'capital_uf', 'id_comarca', 'id_regiao_saude', 'regiao_saude', 'id_regiao_imediata', 'regiao_imediata', 'id_regiao_intermediaria', 'regiao_intermediaria', 'id_microrregiao', 'microrregiao', 'id_mesorregiao', 'mesorregiao', 'ddd', 'id_uf', 'sigla_uf', 'nome_uf', 'regiao'], axis=1)
+# Renomear Colunas
+munic = munic.rename(columns={'id_municipio': 'cod_municipio', 'id_municipio_6': 'id_municipio'})
+# Download Lat Long Municípios
+coord = pd.read_csv('Sedes_Coordenadas_Municipios.csv', sep=';')
+# Renomear Colunas
+coord = coord.rename(columns={'CODIGO MUNICIPIO': 'id_municipio'})
+# # Converter colunas com números em dados numéricos
+munic.id_municipio=pd.to_numeric(munic.id_municipio)
+coord.id_municipio=pd.to_numeric(coord.id_municipio)
+# Mesclar os DataFrame
+municipios = pd.merge(munic, coord, how = 'inner', on = 'id_municipio')
+# Renomear Colunas
+municipios = municipios.rename(columns={'id_municipio_6': 'id_IBGE', 'nome': 'municipio', 'LATITUDE': 'lat', 'LONGITUDE': 'lon'})
+
+# Carregar Dados da PAM-IBGE
+df = bd.read_table(dataset_id='br_ibge_pam', 
+        table_id='municipio_lavouras_temporarias',
+        billing_project_id="YOUR_PROJECT_ID")
+
+# Excluir colunas
+dg = df.drop(['prop_valor_producao', 'prop_area_colhida', 'prop_area_plantada', 'valor_producao', 'quantidade_produzida', 'area_colhida', 'area_plantada'], axis=1)
+# Filtrar Soja (em grão)
+dp = dg.loc[dg['produto'] == 'Soja (em grão)']
+# # Filtrar UF
+# dp = dp.loc[dp['sigla_uf'] == 'PR']
+# Filtrar Ano-Safra
+dp = dp.loc[dp['ano'] == 1979]
+# Renomear Colunas
+dp = dp.rename(columns={'id_municipio': 'cod_municipio'})
+# Mesclar os Dados
+mesclar = pd.merge(dp, municip, how = 'inner', on = 'cod_municipio')
+# Remover Linhas com NaN
+mesclar_final = mesclar[mesclar['rendimento_medio'].notna()]
+gdf = gp.GeoDataFrame(mesclar_final, geometry=gp.points_from_xy(mesclar_final.lon, mesclar_final.lat))
+
+# Plotar Mapa
+fig, ax = plt.subplots(figsize=(15, 15))
+fig.patch.set_facecolor('xkcd:salmon')
+ax.set_facecolor('xkcd:salmon')
+world = gp.read_file(gp.datasets.get_path('naturalearth_lowres'))
+# We restrict to South America.
+ax = world[world.continent == 'South America'].plot(ax=ax, color='white', edgecolor='black')
+# We can now plot our ``GeoDataFrame``.
+gdf.plot(ax=ax, color='red')
+# Adiciona a fonte como nota de rodapé
+fig.text(0.27,                  # Posição x
+         0.13,                  # Posição y
+        "Fonte: IBGE (Safra de Soja-2019).", fontsize=20)
+
+plt.show()
