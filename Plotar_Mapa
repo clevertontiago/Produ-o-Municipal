@@ -30,34 +30,64 @@ df = bd.read_table(dataset_id='br_ibge_pam',
         table_id='municipio_lavouras_temporarias',
         billing_project_id="YOUR_PROJECT_ID")
 
-# Excluir colunas
-dg = df.drop(['prop_valor_producao', 'prop_area_colhida', 'prop_area_plantada', 'valor_producao', 'quantidade_produzida', 'area_colhida', 'area_plantada'], axis=1)
-# Filtrar Soja (em grão)
-dp = dg.loc[dg['produto'] == 'Soja (em grão)']
-# # Filtrar UF
-# dp = dp.loc[dp['sigla_uf'] == 'PR']
-# Filtrar Ano-Safra
-dp = dp.loc[dp['ano'] == 1979]
-# Renomear Colunas
-dp = dp.rename(columns={'id_municipio': 'cod_municipio'})
-# Mesclar os Dados
-mesclar = pd.merge(dp, municip, how = 'inner', on = 'cod_municipio')
-# Remover Linhas com NaN
-mesclar_final = mesclar[mesclar['rendimento_medio'].notna()]
-gdf = gp.GeoDataFrame(mesclar_final, geometry=gp.points_from_xy(mesclar_final.lon, mesclar_final.lat))
+ano_ini = 1974   # Ano Inicial
+ano_end = 2019  # Ano Final
+ano_int = 1   # Intervalo
 
-# Plotar Mapa
-fig, ax = plt.subplots(figsize=(15, 15))
-fig.patch.set_facecolor('xkcd:salmon')
-ax.set_facecolor('xkcd:salmon')
-world = gp.read_file(gp.datasets.get_path('naturalearth_lowres'))
-# We restrict to Brazil
-ax = world[world.name == 'Brazil'].plot(ax=ax, color='white', edgecolor='black')
-# We can now plot our ``GeoDataFrame``.
-gdf.plot(ax=ax, color='red')
-# Adiciona a fonte como nota de rodapé
-fig.text(0.27,                  # Posição x
-         0.13,                  # Posição y
-        "Fonte: IBGE (Safra de Soja-2019).", fontsize=20)
+for ano in range(ano_ini, ano_end + 1, ano_int):
+  # Excluir colunas
+  dg = df.drop(['prop_valor_producao', 'prop_area_colhida', 'prop_area_plantada', 'valor_producao', 'quantidade_produzida', 'area_colhida', 'area_plantada'], axis=1)
+  # Filtrar Soja (em grão)
+  dp = dg.loc[dg['produto'] == 'Soja (em grão)']
+  # Filtrar Ano-Safra
+  dp = dp.loc[dp['ano'] == ano]
+  # Renomear Colunas
+  dp = dp.rename(columns={'id_municipio': 'cod_municipio'})
+  # Mesclar os Dados
+  mesclar = pd.merge(dp, municipios, how = 'inner', on = 'cod_municipio')
+  # Remover Linhas com NaN
+  mesclar_final = mesclar[mesclar['rendimento_medio'].notna()]
+  gdf = gp.GeoDataFrame(mesclar_final, geometry=gp.points_from_xy(mesclar_final.lon, mesclar_final.lat))
+  
+  # Plotar Mapa
+  fig, ax = plt.subplots(figsize=(15, 15))
+  fig.patch.set_facecolor('xkcd:salmon')
+  ax.set_facecolor('xkcd:salmon')
+  world = gp.read_file(gp.datasets.get_path('naturalearth_lowres'))
+  # Mapa do Brasil
+  ax = world[world.name == 'Brazil'].plot(ax=ax, color='white', edgecolor='black')
+  # Plotar GeoDataFrame
+  gdf.plot(ax=ax, color='red')
+  # Adiciona a fonte como nota de rodapé
+  fig.text(0.15,                  # Posição x
+          0.13,                  # Posição y
+          'Fonte: IBGE (Soja-Safra_'+ str(ano)+')', fontsize=20)
+  plt.savefig('image_' + str(ano) + '.png', bbox_inches='tight', pad_inches=0, dpi=100)
+  plt.show()
+ 
+ import imageio
 
-plt.show()
+# Images para incluir no GIF
+files = ['image_1974.png','image_1975.png','image_1976.png','image_1977.png', 
+         'image_1978.png','image_1979.png','image_1980.png','image_1981.png',
+         'image_1982.png','image_1983.png','image_1984.png','image_1985.png',
+         'image_1986.png','image_1987.png','image_1988.png','image_1989.png',
+         'image_1990.png','image_1991.png','image_1992.png','image_1993.png',
+         'image_1994.png','image_1995.png','image_1996.png','image_1997.png',
+         'image_1998.png','image_1999.png','image_2000.png','image_2001.png',
+         'image_2002.png','image_2003.png','image_2004.png','image_2005.png',
+         'image_2006.png','image_2007.png','image_2008.png','image_2009.png',
+         'image_2010.png','image_2011.png','image_2012.png','image_2013.png',
+         'image_2014.png','image_2015.png','image_2016.png','image_2017.png',
+         'image_2018.png','image_2019.png',]
+
+# Criar o GIF
+images = []
+for file in files:
+    images.append(imageio.imread(file))
+imageio.mimsave('animation.gif', images, fps=1)
+
+# Abrir o GIF
+print("\nOpening the GIF..\n")
+from IPython.display import Image
+Image(open('animation.gif','rb').read())
