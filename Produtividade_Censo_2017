@@ -1,0 +1,118 @@
+! pip install geopandas
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import ipywidgets as widgets
+
+# Upload dos Dados
+brasil_agro = gpd.read_file('mun_agro.shp')
+
+# Definir a cultura
+cultura = widgets.ToggleButtons(
+    options=[('ARROZ','V22'),('CANA','V23'),('MANDIOCA','V24'),\
+             ('MILHO','V25'),('SOJA','V26'),('TRIGO','V27'),('CACAU','V28'),\
+             ('CAFÉ','V29'),('LARANJA','V30'),('UVA','V31'),],
+    description='Selecione a cultura:',
+    disabled=False,
+    button_style='info')
+cultura
+
+fig, ax = plt.subplots(figsize=(15, 15))
+fig.patch.set_facecolor('xkcd:salmon')
+ax.set_facecolor('xkcd:salmon')
+brasil_agro.plot(column=cultura.value,cmap='RdBu',edgecolor='none',lw=1,ax=ax)
+plt.title('Produtividade (kg/ha)', fontsize=40)
+plt.ylim()
+# Adiciona escala Colorbar
+# Cria um Axis usado para fazer o Colorbar
+cax = fig.add_axes([0.82,    # posicao x (entre 0.0 e 1.0)
+                    0.30,    # posicao y (entre 0.0 e 1.0)
+                    0.03,    # largura x
+                    0.40])    # altura y
+sm = plt.cm.ScalarMappable(cmap='RdBu',norm=plt.Normalize(
+        vmin=brasil_agro[cultura.value].min(),  # Valor mínimo
+        vmax=brasil_agro[cultura.value].max())) # Valor máximo
+# Põe o Axis com Colorbar na mesma figura do mapa
+fig.colorbar(sm, cax=cax)
+fig.text(0.15,                  # Posição x
+         0.13,                  # Posição y
+        'Fonte: Censo Agro 2017 - IBGE ', fontsize=20)
+plt.savefig('image_' + 'produto' + '.png', bbox_inches='tight', pad_inches=0, dpi=100)
+plt.show();
+
+#Definir a UF
+UF = input().upper()
+
+if UF == 'RS':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("RS")]
+elif UF == 'SC':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("PR")]
+elif UF == 'PR':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("PR")]
+elif UF == 'SP':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("SP")]
+elif UF == 'RJ':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("RJ")]
+elif UF == 'ES':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("ES")]
+elif UF == 'MG':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("MG")]
+elif UF == 'DF':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("DF")]
+elif UF == 'GO':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("GO")]
+elif UF == 'MS':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("MS")]
+elif UF == 'MT':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("MT")]
+elif UF == 'BA':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("BA")]
+elif UF == 'SE':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("SE")]
+elif UF == 'AL':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("AL")]
+elif UF == 'PE':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("PE")]
+elif UF == 'PB':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("PB")]
+elif UF == 'RN':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("RN")]
+elif UF == 'CE':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("CE")]
+elif UF == 'PI':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("PI")]
+elif UF == 'MA':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("MA")]
+elif UF == 'TO':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("TO")]
+elif UF == 'PA':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("PA")]
+elif UF == 'AP':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("AP")]
+elif UF == 'AM':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("AM")]
+elif UF == 'AC':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("AC")]
+elif UF == 'RO':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("RO")]
+elif UF == 'RR':
+  filtered_UF = brasil_agro[brasil_agro['MUNICIPIO'].str.contains("RR")]
+
+else:
+  print('Erro: digite a sigla da UF em caixa alta')
+
+fig, ax = plt.subplots(figsize=(15, 15))
+filtered_UF.plot(column=cultura.value,cmap='RdBu',edgecolor='none',lw=1,ax=ax)
+plt.title('Censo Agro 2017 - Produtividade', fontsize=40)
+plt.ylim()
+# Adiciona escala Colorbar
+# Cria um Axis usado para fazer o Colorbar
+cax = fig.add_axes([0.95,    # posicao x (entre 0.0 e 1.0)
+                    0.30,    # posicao y (entre 0.0 e 1.0)
+                    0.03,    # largura x
+                    0.40])    # altura y
+sm = plt.cm.ScalarMappable(cmap='RdBu',norm=plt.Normalize(
+        vmin=filtered_UF[cultura.value].min(),  # Valor mínimo
+        vmax=filtered_UF[cultura.value].max())) # Valor máximo
+# Põe o Axis com Colorbar na mesma figura do mapa
+fig.colorbar(sm, cax=cax)
+plt.show();
